@@ -48,7 +48,7 @@ with tab1:
     initial_impact = 100
     # User inputs
     st.subheader('User Inputs')
-    num_periods = st.slider('Number of weeks after impressions first :alarm_clock:', 1, 100, 20)
+    num_periods = st.slider('Number of weeks after impressions first received :alarm_clock:', 1, 100, 20)
     # Let user choose 3 decay rates to compare simultaneously
     decay_rate_1 = st.slider(':blue[Beta 1] :large_blue_square:', 0.0, 1.0, 0.3)
     decay_rate_2 = st.slider(':red[Beta 2] :large_red_square:', 0.0, 1.0, 0.6)
