@@ -61,9 +61,9 @@ left_column.button('Press me!')
 # Or even better, call Streamlit functions inside a "with" block:
 with right_column:
     chosen = st.radio(
-        'Sorting hat',
-        ("Gryffindor", "Ravenclaw", "Hufflepuff", "Slytherin"))
-    st.write(f"You are in {chosen} house!")
+        'Select a type of house',
+        ("Green", "Big", "Small", "Semi-detached"))
+    st.write(f"You are in a {chosen} house!")
 
 
 import time
