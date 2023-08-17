@@ -4,7 +4,7 @@ import numpy as np
 import plotly.express as px
 
 # ------------------- VARIABLE TRANSFORMATION FUNCTIONS ------------------------
-# -------------------------- ADSTOCK FUNCTIONS ---------------------------------
+
 def geometric_adstock(impact, decay_factor, periods):
     """
     Calculate the geometric adstock effect.
@@ -25,8 +25,7 @@ def geometric_adstock(impact, decay_factor, periods):
     
     return adstock_values
 
-
-# Geometric adstock transformation
+# -------------------------- GEOMETRIC ADSTOCK DISPLAY ---------------------------------
 st.title('Adstock Transformations')
 # Give some context for what the page displays
 st.markdown("This page demonstrates the effect of various adstock \
