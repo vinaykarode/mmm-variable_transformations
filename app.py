@@ -25,9 +25,8 @@ def geometric_adstock(impact, decay_factor, periods):
     
     return adstock_values
 
-# -------------------------- GEOMETRIC ADSTOCK DISPLAY -------------------------
-st.title('Adstock Transformations')
 # Give some context for what the page displays
+st.title('Adstock Transformations')
 st.markdown("This web app demonstrates the effect of various adstock \
             transformations on a variable.  \nFor these examples, let's imagine \
             that we have _some variable that represents a quantity of a particlar_ \
@@ -40,6 +39,7 @@ st.markdown("This web app demonstrates the effect of various adstock \
 # Separate the adstock transformations into 3 tabs
 tab1, tab2, tab3 = st.tabs(["Geometric", "Weibull CDF", "Weibull PDF"])
 
+# -------------------------- GEOMETRIC ADSTOCK DISPLAY -------------------------
 with tab1:
     st.header('Geometric Adstock Transformation')
 
@@ -48,7 +48,7 @@ with tab1:
     initial_impact = 100
     # User inputs
     st.subheader('User Inputs')
-    num_periods = st.slider('Number of Weeks :alarm_clock:', 1, 100, 20)
+    num_periods = st.slider('Number of weeks after impressions first :alarm_clock:', 1, 100, 20)
     # Let user choose 3 decay rates to compare simultaneously
     decay_rate_1 = st.slider(':blue[Beta 1] :large_blue_square:', 0.0, 1.0, 0.3)
     decay_rate_2 = st.slider(':red[Beta 2] :large_red_square:', 0.0, 1.0, 0.6)
