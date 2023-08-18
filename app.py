@@ -149,7 +149,7 @@ with tab3:
 
     # User inputs
     st.subheader('User Inputs')
-    num_periods = st.slider('Number of weeks after impressions first received :alarm_clock:', 1, 100, 20)
+    num_periods_3 = st.slider('Number of weeks after impressions first received :alarm_clock:', 1, 100, 20)
     # Let user choose shape and scale parameters to compare two Weibull PDF decay curves simultaneously
     # Params for Line A
     shape_parameter_A = st.slider(':blue[Line A] :large_blue_square:', 0.0, 10, 2)
@@ -160,15 +160,15 @@ with tab3:
 
     # Calculate weibull pdf adstock values, decayed over time for both sets of params
     adstock_series_A = weibull_pdf_adstock_decay(initial_impact, shape_parameter_A,
-                                                  scale_parameter_A, num_periods)
+                                                  scale_parameter_A, num_periods_3)
     adstock_series_B = weibull_pdf_adstock_decay(initial_impact, shape_parameter_B,
-                                                  scale_parameter_B, num_periods)
+                                                  scale_parameter_B, num_periods_3)
 
     # Create dfs of both sets of adstock values, to plot with
-    adstock_df_A = pd.DataFrame({"Week": range(1, (num_periods + 1)),
+    adstock_df_A = pd.DataFrame({"Week": range(1, (num_periods_3 + 1)),
                                 "Adstock": adstock_series_A,
                                 "Line": "Line A"})
-    adstock_df_B = pd.DataFrame({"Week": range(1, (num_periods + 1)),
+    adstock_df_B = pd.DataFrame({"Week": range(1, (num_periods_3 + 1)),
                                 "Adstock": adstock_series_B,
                                 "Line": "Line B"})
     # Create plotting df
