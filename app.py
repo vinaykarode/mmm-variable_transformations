@@ -181,7 +181,7 @@ with tab3:
     # Plot adstock values
     # Annotate the plot if user wants it
     st.markdown('**Would you like to show the adstock values directly on the plot?**')
-    annotate = st.checkbox('Yes please! :pray:')
+    annotate = st.checkbox('Yes please! :grinning:')
     if annotate:
         fig = px.line(weibull_pdf_df, x = 'Week',
                 y = 'Adstock', text = 'Adstock Labels',
