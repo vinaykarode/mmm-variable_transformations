@@ -152,11 +152,11 @@ with tab3:
     num_periods_3 = st.slider('Weibull PDF - Number of weeks after impressions first received :alarm_clock:', 1, 100, 20)
     # Let user choose shape and scale parameters to compare two Weibull PDF decay curves simultaneously
     # Params for Line A
-    shape_parameter_A = st.slider(':blue[Line A] :large_blue_square:', 0.0, 10, 2)
-    scale_parameter_A = st.slider(':triangular_ruler::blue[Line A] :large_blue_square:', 0.0, 1, 0.5)
+    shape_parameter_A = st.slider(':blue[Line A] :large_blue_square:', 0.0, 10.0, 2.0)
+    scale_parameter_A = st.slider(':triangular_ruler::blue[Line A] :large_blue_square:', 0.0, 1.0, 0.5)
     # Params for Line B
-    shape_parameter_B = st.slider(':red[Line B] :large_red_square:', 0.0, 10, 0.5)
-    scale_parameter_B = st.slider(':triangular_ruler::red[Line B] :large_red_square:', 0.0, 1, 0.01)
+    shape_parameter_B = st.slider(':red[Line B] :large_red_square:', 0.0, 10.0, 0.5)
+    scale_parameter_B = st.slider(':triangular_ruler::red[Line B] :large_red_square:', 0.0, 1.0, 0.01)
 
     # Calculate weibull pdf adstock values, decayed over time for both sets of params
     adstock_series_A = weibull_pdf_adstock_decay(initial_impact, shape_parameter_A,
