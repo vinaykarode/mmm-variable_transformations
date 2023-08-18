@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
+from scipy.stats import weibull_min
+from sklearn.preprocessing import MinMaxScaler
 # ------------------- VARIABLE TRANSFORMATION FUNCTIONS ------------------------
 
 def geometric_adstock(impact, decay_factor, periods):
@@ -25,6 +27,41 @@ def geometric_adstock(impact, decay_factor, periods):
     
     return adstock_values
 
+def weibull_pdf_adstock_decay(impact, shape, scale, periods):
+    """
+    Calculate Weibull PDF adstock decay for media mix modeling.
+
+    Parameters:
+        impact (float): Initial advertising impact.
+        shape (float): Shape parameter of the Weibull distribution.
+        scale (float): Scale parameter of the Weibull distribution.
+        periods (int): Number of periods.
+
+    Returns:
+        list: List of adstock-transformed values for each period.
+    """
+    # List to store decay values
+    adstock_decay_values = []
+
+    # Transform the scale parameter according to percentile of time period
+    transformed_scale = np.percentile(range(1, periods), scale * 100) 
+    
+    # Create a Weibull distribution object with the transformed scale parameter
+    weibull_dist = weibull_min(shape, scale=transformed_scale)
+
+    # Calculate adstock decay values for each period using the Weibull PDF
+    for t in range(1, periods+1):
+        adstock_decay = impact * weibull_dist.pdf(t)
+        adstock_decay_values.append(adstock_decay)
+
+    # Normalize adstock decay values for easier plotting
+    reshaped_decay = np.array(adstock_decay_values).reshape(-1, 1)
+    normalised_adstock_decay = MinMaxScaler().fit_transform(reshaped_decay).flatten()
+    
+    return normalised_adstock_decay
+
+# -------------------------- TOP OF PAGE INFORMATION -------------------------
+
 # Give some context for what the page displays
 st.title('Adstock Transformations')
 st.markdown("This web app demonstrates the effect of various adstock \
@@ -36,6 +73,9 @@ st.markdown("This web app demonstrates the effect of various adstock \
             \n\n**_:violet[We will use this starting value of 100 for all of our adstock examples]_**. \
             ")
 
+# Starting value for adstock
+initial_impact = 100
+
 # Separate the adstock transformations into 3 tabs
 tab1, tab2, tab3 = st.tabs(["Geometric", "Weibull CDF", "Weibull PDF"])
 
@@ -43,9 +83,6 @@ tab1, tab2, tab3 = st.tabs(["Geometric", "Weibull CDF", "Weibull PDF"])
 with tab1:
     st.header('Geometric Adstock Transformation')
 
-
-    # Starting value for adstock
-    initial_impact = 100
     # User inputs
     st.subheader('User Inputs')
     num_periods = st.slider('Number of weeks after impressions first received :alarm_clock:', 1, 100, 20)
@@ -97,5 +134,73 @@ with tab1:
     fig.layout.height = 600
     fig.layout.width = 1000
     fig.update_layout(title_text="Geometric Adstock Decayed Over Weeks", 
+                    title_font = dict(size = 30))
+    st.plotly_chart(fig, theme="streamlit", use_container_width=False)
+
+
+# -------------------------- WEIBULL CDF ADSTOCK DISPLAY -------------------------
+with tab2:
+    st.header('Weibull CDF Adstock Transformation')
+    # User inputs
+    st.subheader('User Inputs')
+
+# -------------------------- WEIBULL PDF ADSTOCK DISPLAY -------------------------
+with tab3:
+    st.header('Weibull PDF Adstock Transformation')
+
+    # User inputs
+    st.subheader('User Inputs')
+    num_periods = st.slider('Number of weeks after impressions first received :alarm_clock:', 1, 100, 20)
+    # Let user choose shape and scale parameters to compare two Weibull PDF decay curves simultaneously
+    # Params for Line A
+    shape_parameter_A = st.slider(':blue[Line A] :large_blue_square:', 0.0, 10, 2)
+    scale_parameter_A = st.slider(':blue[Line A] :large_blue_square:', 0.0, 1, 0.5)
+    # Params for Line B
+    shape_parameter_B = st.slider(':red[Line B] :large_red_square:', 0.0, 10, 0.5)
+    scale_parameter_B = st.slider(':red[Line B] :large_red_square:', 0.0, 1, 0.01)
+
+    # Calculate weibull pdf adstock values, decayed over time for both sets of params
+    adstock_series_A = weibull_pdf_adstock_decay(initial_impact, shape_parameter_A,
+                                                  scale_parameter_A, num_periods)
+    adstock_series_B = weibull_pdf_adstock_decay(initial_impact, shape_parameter_B,
+                                                  scale_parameter_B, num_periods)
+
+    # Create dfs of both sets of adstock values, to plot with
+    adstock_df_A = pd.DataFrame({"Week": range(1, (num_periods + 1)),
+                                "Adstock": adstock_series_A,
+                                "Line": "Line A"})
+    adstock_df_B = pd.DataFrame({"Week": range(1, (num_periods + 1)),
+                                "Adstock": adstock_series_B,
+                                "Line": "Line B"})
+    # Create plotting df
+    weibull_pdf_df = pd.concat([adstock_df_A, adstock_df_B])
+    # Multiply by 100 to get back to scale of initial impact (100 FB impressions)
+    weibull_pdf_df.Adstock = weibull_pdf_df.Adstock * 100
+    # Format adstock labels for neater plotting
+    weibull_pdf_df["Adstock Labels"] = weibull_pdf_df.Adstock.map('{:,.0f}'.format)
+
+    # Plot adstock values
+    # Annotate the plot if user wants it
+    st.markdown('**Would you like to show the adstock values directly on the plot?**')
+    annotate = st.checkbox('Yes please! :pray:')
+    if annotate:
+        fig = px.line(weibull_pdf_df, x = 'Week',
+                y = 'Adstock', text = 'Adstock Labels',
+                markers=True, color = "Line",
+                # Replaces default color mapping by value
+                color_discrete_map={"Line A": "#636EFA",
+                                        "Line B": "#EF553B"})
+        fig.update_traces(textposition="bottom left")
+    else:
+        fig = px.line(weibull_pdf_df, x = 'Week',
+                y = 'Adstock',
+                markers=True, color = "Line",
+                # Replaces default color mapping by value
+                color_discrete_map={"Line A": "#636EFA",
+                                        "Line B": "#EF553B"})
+    # Format plot
+    fig.layout.height = 600
+    fig.layout.width = 1000
+    fig.update_layout(title_text="Weibull PDF Adstock Decayed Over Weeks", 
                     title_font = dict(size = 30))
     st.plotly_chart(fig, theme="streamlit", use_container_width=False)
