@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import scipy.stats as stats
+import scipy
 from sklearn.preprocessing import MinMaxScaler
 # ------------------- VARIABLE TRANSFORMATION FUNCTIONS ------------------------
 
@@ -46,7 +46,7 @@ def weibull_pdf_adstock_decay(impact, shape, scale, periods):
     transformed_scale = np.percentile(range(1, periods), scale * 100) 
     
     # Create a Weibull distribution object with the transformed scale parameter
-    weibull_dist = stats.weibull_min(shape, scale=transformed_scale)
+    weibull_dist = scipy.stats.weibull_min(shape, scale=transformed_scale)
 
     # Calculate adstock decay values for each period using the Weibull PDF
     for t in range(1, periods+1):
