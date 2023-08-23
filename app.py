@@ -160,14 +160,14 @@ with tab2:
     # Let user choose shape and scale parameters to compare two Weibull PDF decay curves simultaneously
     # Params for Line A
     shape_parameter_A = st.slider(':triangular_ruler: :blue[Shape of Line A] :large_blue_square:', 
-                                  0.0, 10.0, 2.0, key = "Weibull CDF Shape A")
+                                  0.0, 10.0, 0.1, key = "Weibull CDF Shape A")
     scale_parameter_A = st.slider(':blue[Scale of Line A] :large_blue_square:',
-                                   0.0, 1.0, 0.5, key = "Weibull CDF Scale A")
+                                   0.0, 1.0, 0.1, key = "Weibull CDF Scale A")
     # Params for Line B
     shape_parameter_B = st.slider(':triangular_ruler: :red[Shape of Line B] :large_red_square:', 
-                                  0.0, 10.0, 0.5, key = "Weibull CDF Shape B")
+                                  0.0, 10.0, 9.0, key = "Weibull CDF Shape B")
     scale_parameter_B = st.slider(':red[Scale of Line B] :large_red_square:', 
-                                  0.0, 1.0, 0.01, key = "Weibull CDF Scale B")
+                                  0.0, 1.0, 0.5, key = "Weibull CDF Scale B")
 
     # Calculate weibull pdf adstock values, decayed over time for both sets of params
     adstock_series_A = weibull_adstock_decay(initial_impact, shape_parameter_A,
