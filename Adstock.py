@@ -74,9 +74,15 @@ def weibull_adstock_decay(impact, shape, scale, periods, adstock_type='cdf', nor
 
 # -------------------------- TOP OF PAGE INFORMATION -------------------------
 
+# Set browser / tab config
+st.set_page_config(
+    page_title="MMM App - Adstock Transformations",
+    page_icon="🧊",
+)
+
 # Give some context for what the page displays
 st.title('Adstock Transformations')
-st.markdown("This web app demonstrates the effect of various adstock \
+st.markdown("This page demonstrates the effect of various adstock \
             transformations on a variable.  \nFor these examples, let's imagine \
             that we have _some variable that represents a quantity of a particlar_ \
             _advertising channel_.  \nFor example, this could be the number of impressions\
