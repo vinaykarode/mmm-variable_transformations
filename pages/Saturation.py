@@ -79,7 +79,7 @@ dummy_hill = hill_function(media_spending, alpha = 8, gamma = 100) + np.random.n
 
 # Let user select what kind of spend / response data to plot
 data_option = st.radio(
-    '**Please select a fictional dataset to plot your response curves on top of**',
+    '**Please select a fictional dataset to plot your response curves on top of:**',
     ('Dataset A', 'Dataset B'))
 
 if data_option == 'Dataset A':
