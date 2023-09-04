@@ -55,6 +55,9 @@ st.markdown("This page demonstrates the forms and shapes of saturation curves fo
              the conversions that result from that spend.\
             ")
 
+st.markdown("**Reminder:** \n \
+- Root saturations have **_:red[concave or convex shapes]_**  \n\
+- Hill saturations have **_:red[S-shaped shapes]_**")
 
 # -------------------------- ROOT AND HILL PLOTS -------------------------
 
