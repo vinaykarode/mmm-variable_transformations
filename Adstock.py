@@ -91,6 +91,10 @@ st.markdown("This page demonstrates the effect of various adstock \
             \n\n**_:violet[We will use this starting value of 100 for all of our adstock examples]_**. \
             ")
 
+st.markdown("**Reminder:** \n \
+- Geometric adstock transformations have **_:red[fixed decay]_**  \n\
+- Weibull adstock transformations have **_:red[flexible decay]_**")
+
 # Starting value for adstock
 initial_impact = 100
 
