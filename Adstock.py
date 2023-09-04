@@ -105,6 +105,11 @@ tab1, tab2, tab3 = st.tabs(["Geometric", "Weibull CDF", "Weibull PDF"])
 with tab1:
     st.header('Geometric Adstock Transformation')
 
+    st.markdown("Typical values for geometric adstock: \n \
+- TV: **:blue[0.3 - 0.8]** - decays slowly \n \
+- OOH/Print/Radio:  **:blue[0.1 - 0.4]** - decays moderately \n \
+- Digital:  **:blue[0.0 - 0.3]** - decays quickly \n")
+
     # User inputs
     st.subheader('User Inputs')
     num_periods = st.slider('Number of weeks after impressions first received :alarm_clock:', 1, 100, 20, key = "Geometric")
