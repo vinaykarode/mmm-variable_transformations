@@ -178,30 +178,42 @@ with tab2:
                                   0.0, 10.0, 0.1, key = "Weibull CDF Shape A")
     scale_parameter_A = st.slider(':blue[Scale of Line A] :large_blue_square:',
                                    0.0, 1.0, 0.1, key = "Weibull CDF Scale A")
-    # Params for Line B
-    shape_parameter_B = st.slider(':triangular_ruler: :red[Shape of Line B] :large_red_square:', 
-                                  0.0, 10.0, 9.0, key = "Weibull CDF Shape B")
-    scale_parameter_B = st.slider(':red[Scale of Line B] :large_red_square:', 
-                                  0.0, 1.0, 0.5, key = "Weibull CDF Scale B")
-
+    
     # Calculate weibull pdf adstock values, decayed over time for both sets of params
     adstock_series_A = weibull_adstock_decay(initial_impact, shape_parameter_A,
                                                   scale_parameter_A, num_periods_2,
                                                   adstock_type='cdf', normalised=True)
     
-    adstock_series_B = weibull_adstock_decay(initial_impact, shape_parameter_B,
-                                                  scale_parameter_B, num_periods_2,
-                                                  adstock_type='cdf', normalised=True)
-
-    # Create dfs of both sets of adstock values, to plot with
+    # Create df of adstock values, to plot with
     adstock_df_A = pd.DataFrame({"Week": range(1, (num_periods_2 + 1)),
                                 "Adstock": adstock_series_A,
                                 "Line": "Line A"})
-    adstock_df_B = pd.DataFrame({"Week": range(1, (num_periods_2 + 1)),
-                                "Adstock": adstock_series_B,
-                                "Line": "Line B"})
+    
     # Create plotting df
-    weibull_pdf_df = pd.concat([adstock_df_A, adstock_df_B])
+    weibull_pdf_df = adstock_df_A.copy()
+    
+    # Plot 2nd line if user desires values
+    st.markdown('**Would you like to add a second line to the plot?**')
+    second_cdf = st.checkbox('Okay! :grin:', key = "Add 2nd Weibull CDF")
+
+    if second_cdf:
+        # Params for Line B
+        shape_parameter_B = st.slider(':triangular_ruler: :red[Shape of Line B] :large_red_square:', 
+                                    0.0, 10.0, 9.0, key = "Weibull CDF Shape B")
+        scale_parameter_B = st.slider(':red[Scale of Line B] :large_red_square:', 
+                                    0.0, 1.0, 0.5, key = "Weibull CDF Scale B")
+        # Calculate weibull pdf adstock values, decayed over time for both sets of params
+        adstock_series_B = weibull_adstock_decay(initial_impact, shape_parameter_B,
+                                                    scale_parameter_B, num_periods_2,
+                                                    adstock_type='cdf', normalised=True)
+
+        # Create df of adstock values, to plot with
+        adstock_df_B = pd.DataFrame({"Week": range(1, (num_periods_2 + 1)),
+                                    "Adstock": adstock_series_B,
+                                    "Line": "Line B"})
+        # Create plotting df
+        weibull_pdf_df = pd.concat([adstock_df_A, adstock_df_B])
+
     # Multiply by 100 to get back to scale of initial impact (100 FB impressions)
     weibull_pdf_df.Adstock = weibull_pdf_df.Adstock
     # Format adstock labels for neater plotting
@@ -247,30 +259,43 @@ with tab3:
                                    0.0, 10.0, 2.0, key = "Weibull PDF Shape A")
     scale_parameter_A = st.slider(':blue[Scale of Line A] :large_blue_square:', 
                                   0.0, 1.0, 0.5, key = "Weibull PDF Scale A")
-    # Params for Line B
-    shape_parameter_B = st.slider(':triangular_ruler: :red[Shape of Line B] :large_red_square:',
-                                   0.0, 10.0, 0.5, key = "Weibull PDF Shape B")
-    scale_parameter_B = st.slider(':red[Scale of Line B] :large_red_square:', 
-                                  0.0, 1.0, 0.01, key = "Weibull PDF Scale B")
-
+    
     # Calculate weibull pdf adstock values, decayed over time for both sets of params
     adstock_series_A = weibull_adstock_decay(initial_impact, shape_parameter_A,
                                                   scale_parameter_A, num_periods_3,
-                                                  adstock_type='pdf', normalised=True)
-    
-    adstock_series_B = weibull_adstock_decay(initial_impact, shape_parameter_B,
-                                                  scale_parameter_B, num_periods_3,
-                                                  adstock_type='pdf', normalised=True)
+                                                  adstock_type='pdf', normalised=True)  
 
-    # Create dfs of both sets of adstock values, to plot with
+    # Create df of adstock values, to plot with
     adstock_df_A = pd.DataFrame({"Week": range(1, (num_periods_3 + 1)),
                                 "Adstock": adstock_series_A,
-                                "Line": "Line A"})
-    adstock_df_B = pd.DataFrame({"Week": range(1, (num_periods_3 + 1)),
-                                "Adstock": adstock_series_B,
-                                "Line": "Line B"})
+                                "Line": "Line A"})  
+    
     # Create plotting df
-    weibull_pdf_df = pd.concat([adstock_df_A, adstock_df_B])
+    weibull_pdf_df = adstock_df_A.copy()
+
+    # Plot 2nd line if user desires values
+    st.markdown('**Would you like to add a second line to the plot?**')
+    second_pdf = st.checkbox('Okay! :grin:', key = "Add 2nd Weibull PDF")
+
+    if second_pdf:
+        # Params for Line B
+        shape_parameter_B = st.slider(':triangular_ruler: :red[Shape of Line B] :large_red_square:',
+                                    0.0, 10.0, 0.5, key = "Weibull PDF Shape B")
+        scale_parameter_B = st.slider(':red[Scale of Line B] :large_red_square:', 
+                                    0.0, 1.0, 0.01, key = "Weibull PDF Scale B")
+
+        # Calculate weibull pdf adstock values, decayed over time for both sets of params
+        adstock_series_B = weibull_adstock_decay(initial_impact, shape_parameter_B,
+                                                    scale_parameter_B, num_periods_3,
+                                                    adstock_type='pdf', normalised=True)
+    
+        # Create df of adstock values, to plot with
+        adstock_df_B = pd.DataFrame({"Week": range(1, (num_periods_3 + 1)),
+                                    "Adstock": adstock_series_B,
+                                    "Line": "Line B"})
+        # Create plotting df
+        weibull_pdf_df = pd.concat([adstock_df_A, adstock_df_B])
+
     # Multiply by 100 to get back to scale of initial impact (100 FB impressions)
     weibull_pdf_df.Adstock = weibull_pdf_df.Adstock
     # Format adstock labels for neater plotting
