@@ -2,77 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-
-# ------------------- SATURATION CURVE FUNCTIONS ------------------------
-
-# Hill function
-def threshold_hill_function(x, alpha, gamma, threshold=None):
-    """
-    Compute the value of a Hill function with a threshold for activation.
-    The threshold is added for visualisation purposes,
-    it makes the graphs display a better S-shape.
-
-    Parameters:
-        x (float or array-like): Input variable(s).
-        alpha (float): Controls the shape of the curve.
-        gamma (float): Controls inflection point of saturation curve.
-        threshold (float): Minimum amount of spend before response starts.
-
-    Returns:
-        float or array-like: Values of the modified Hill function for the given inputs.
-    """
-    if threshold:
-        # Apply threshold condition
-        y = np.where(x > threshold, (x ** alpha) / ((x ** alpha) + (gamma ** alpha)), 0)
-    else:
-        y = (x ** alpha) / ((x ** alpha) + (gamma ** alpha))
-    return y
-
-# Root function
-def root_function(x, alpha):
-    """
-    Compute the value of a root function.
-    The root function raises the input variable to a power specified by the alpha parameter.
-
-    Parameters:
-        x (float or array-like): Input variable(s).
-        alpha (float): Exponent controlling the root function.
-
-    Returns:
-        float or array-like: Values of the root function for the given inputs.
-    """
-    return x ** alpha
-
-# Logistic function
-def logistic_function(x, lam):
-    """
-    Compute the value of a logistic function for saturation.
-
-    Parameters:
-        x (float or array-like): Input variable(s).
-        lam (float): Growth rate or steepness of the curve.
-
-    Returns:
-        float or array-like: Values of the modified logistic function for the given inputs.
-    """
-    return (1 - np.exp(-lam * x)) / (1 + np.exp(-lam * x))
-
-# Custom tanh saturation
-def tanh_saturation(x, b=0.5, c=0.5):
-    """
-    Tanh saturation transformation.
-    Credit to PyMC-Marketing: https://github.com/pymc-labs/pymc-marketing/blob/main/pymc_marketing/mmm/transformers.py
-
-    Parameters:
-        x (array-like): Input variable(s).
-        b (float): Scales the output. Must be non-negative.
-        c (float): Affects the steepness of the curve. Must be non-zero.
-
-    Returns:
-        array-like: Transformed values using the tanh saturation formula.
-    """
-    return b * np.tanh(x / (b * c))
-
+# Import custom functions
+from mmm_functions import *
 
 # -------------------------- TOP OF PAGE INFORMATION -------------------------
 
@@ -106,30 +37,31 @@ media_spending = np.linspace(0, 1000, num_points) # x-axis
 
 
 # Generate simulated datasets with noise
-dummy_root = root_function(media_spending, alpha = 0.3) + np.random.normal(0, 0.3, num_points)
-dummy_hill = threshold_hill_function(media_spending, alpha = 8, gamma = 400, threshold=200) + np.random.normal(0, 0.05, num_points)
-dummy_logistic = logistic_function(media_spending, lam = 0.01) + + np.random.normal(0, 0.1, num_points)
-dummy_tanh = tanh_saturation(media_spending, b = 10, c = 20) + + np.random.normal(0, 0.75, num_points)
+dummy_root = root_saturation(media_spending, alpha = 0.3) + np.random.normal(0, 0.3, num_points)
+dummy_hill = threshold_hill_saturation(media_spending, alpha = 8, gamma = 400, threshold=200) + np.random.normal(0, 0.05, num_points)
+dummy_logistic = logistic_saturation(media_spending, lam = 0.01) + np.random.normal(0, 0.1, num_points)
+dummy_tanh = tanh_saturation(media_spending, b = 10, c = 20) + np.random.normal(0, 0.75, num_points)
+dummy_m_m = michaelis_menten_saturation(media_spending, alpha = 20, lam = 200) + np.random.normal(0, 2, num_points)
 
 # Create tabs for Root and Hill plots
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Root", "Hill", "Logistic", "Tanh", "Michaelis-Menten"])
 
 # -------------------------- ROOT CURVE -------------------------
 with tab1:
-    st.subheader('Root Curve Saturation')
+    st.subheader(':blue[Root Curve Saturation]')
     st.markdown("___The Root curve takes the form:___")
     st.latex(r'''
         x_t^{\textrm{transf}} = x_t^\alpha
         ''')
     st.divider()
     # User inputs
-    st.subheader('User Inputs')
+    st.subheader(':blue[User Inputs]')
     st.markdown('**Try to fit a saturation curve to the generated data!**')
 
     # User input for Root Curve
     root_alpha = st.slider('**:blue[Root Curve $\\alpha$]:**', 0.0, 1.0, 0.45, key='root_alpha')
     # Calculate the user created response curve
-    user_root = root_function(media_spending, alpha=root_alpha)
+    user_root = root_saturation(media_spending, alpha=root_alpha)
 
 
     # Tidy the simulated dataset for plotting
@@ -162,21 +94,21 @@ with tab1:
 
 # -------------------------- HILL CURVE -------------------------
 with tab2:
-    st.subheader('Hill Curve Saturation')
+    st.subheader(':red[Hill Curve Saturation]')
     st.markdown("___The Hill function takes the form:___")
     st.latex(r'''
         x_t^{\textrm{transf}} = \frac{x_t^\alpha}{x_t^\alpha + \gamma^\alpha}
         ''')
     st.divider()
     # User inputs
-    st.subheader('User Inputs')
+    st.subheader(':red[User Inputs]')
     st.markdown('**Try to fit a saturation curve to the generated data!**')
 
     # User input for Hill Curve
     hill_alpha = st.slider(':red[Hill Curve $\\alpha$]:', 0.0, 10.0, 0.45)
     hill_gamma = st.slider(':red[Hill Curve $\\gamma$]:', 1, 1000, 100)
     # Calculate the user created response curve
-    user_hill = threshold_hill_function(media_spending, alpha = hill_alpha, gamma = hill_gamma)
+    user_hill = threshold_hill_saturation(media_spending, alpha = hill_alpha, gamma = hill_gamma)
 
 
     # Tidy the simulated dataset for plotting
@@ -210,15 +142,15 @@ with tab2:
 
 # -------------------------- LOGISTIC CURVE -------------------------
 with tab3:
-    st.subheader('Logistic Curve Saturation')
+    st.subheader(':green[Logistic Curve Saturation]')
     st.markdown("___The Logistic function takes the form:___")
     st.latex(r'''
-        x_t^{\textrm{transf}} = \frac{1 - e^{-\lambda x}}{1 + e^{-\lambda x}}
+        x_t^{\textrm{transf}} = \frac{1 - e^{-\lambda x_t}}{1 + e^{-\lambda x_t}}
         ''')
     st.caption(":link: Credit to [pymc-marketing](https://github.com/pymc-labs/pymc-marketing/blob/main/pymc_marketing/mmm/transformers.py) for this code")
     st.divider()
     # User inputs
-    st.subheader('User Inputs')
+    st.subheader(':green[User Inputs]')
     st.markdown('**Try to fit a saturation curve to the generated data!**')
 
     # User input for Modified Logistic Curve
@@ -226,7 +158,7 @@ with tab3:
     logistic_lam = logistic_lam / 10000
 
     # Calculate the user created response curve
-    user_logistic = logistic_function(media_spending, lam=logistic_lam)
+    user_logistic = logistic_saturation(media_spending, lam=logistic_lam)
 
 
     # Tidy the simulated dataset for plotting
@@ -260,20 +192,20 @@ with tab3:
 
 # -------------------------- TANH CURVE -------------------------
 with tab4:
-    st.subheader('Tanh Curve Saturation')
+    st.subheader(':orange[Tanh Curve Saturation]')
     st.markdown("___The Tanh saturation function takes the form:___")
     st.latex(r'''
-        x_t^{\textrm{transf}} = b \tanh \left( \frac{x}{bc} \right)
+        x_t^{\textrm{transf}} = b \tanh \left( \frac{x_t}{bc} \right)
         ''')
     st.caption(":link: Credit to [pymc-marketing](https://github.com/pymc-labs/pymc-marketing/blob/main/pymc_marketing/mmm/transformers.py) for this code")
     st.divider()
     # User inputs
-    st.subheader('User Inputs')
+    st.subheader(':orange[User Inputs]')
     st.markdown('**Try to fit a saturation curve to the generated data!**')
 
     # User input for Tanh Curve
-    tanh_b = st.slider(':red[Tanh Curve $\\text{b}$]:', 0, 20, 5)
-    tanh_c = st.slider(':red[Tanh Curve $\\text{c}$]:', 0, 100, 50)
+    tanh_b = st.slider(':orange[Tanh Curve $\\text{b}$]:', 0, 20, 5)
+    tanh_c = st.slider(':orange[Tanh Curve $\\text{c}$]:', 0, 100, 50)
 
     # Calculate the user created response curve
     user_tanh = tanh_saturation(media_spending, b=tanh_b, c=tanh_c)
@@ -301,6 +233,56 @@ with tab4:
                                   line=dict(color='blue', dash='solid')))
     
     fig_root.update_layout(title_text="Tanh Saturation Curve", 
+                           xaxis_title='Media Spend',
+                           yaxis_title='Conversions',
+                           height=500, width=1000)
+                           
+    st.plotly_chart(fig_root, use_container_width=True)
+
+
+# -------------------------- MICHAELIS-MENTEN CURVE -------------------------
+with tab5:
+    st.subheader(':violet[Michaelis-Menten Curve Saturation]')
+    st.markdown("___The Michaelis-Menten saturation function takes the form:___")
+    st.latex(r'''
+        x_t^{\textrm{transf}} = \frac{\alpha \cdot x_t}{\lambda + x_t}
+        ''')
+    st.caption(":link: Credit to [pymc-marketing](https://github.com/pymc-labs/pymc-marketing/blob/main/pymc_marketing/mmm/transformers.py) for this code")
+    st.divider()
+    # User inputs
+    st.subheader(':violet[User Inputs]')
+    st.markdown('**Try to fit a saturation curve to the generated data!**')
+
+    # User input for Tanh Curve
+    m_m_alpha = st.slider(':violet[Michaelis-Menten Curve $\\alpha$:]', 0, 50, 25)
+    m_m_lambda = st.slider(':violet[Michaelis-Menten Curve $\\lambda$:]', 0, 500, 50)
+
+    # Calculate the user created response curve
+    user_m_m = michaelis_menten_saturation(media_spending, alpha=m_m_alpha, lam=m_m_lambda)
+
+
+    # Tidy the simulated dataset for plotting
+    plot_data = pd.DataFrame({'Media Spending':np.round(media_spending), 
+                            'Conversions':dummy_m_m})
+    # Drop rows with negative conversions, generated by the noise
+    plot_data = plot_data[plot_data.Conversions >= 0]
+    
+    # Plot
+    fig_root = go.Figure()
+    # Plot weekly spend and response data, every 5th to make the plot less crowded
+    fig_root.add_trace(go.Scatter(x = plot_data['Media Spending'][::5],
+                            y = plot_data['Conversions'][::5],
+                            mode = 'markers',
+                            name = 'Weekly Data',
+                            marker = dict(color='#AB63FA')))
+    # Plot user-defined curve to match that data
+    fig_root.add_trace(go.Scatter(x=media_spending,
+                                  y=user_m_m,
+                                  mode='lines',
+                                  name='Saturation Curve',
+                                  line=dict(color='blue', dash='solid')))
+    
+    fig_root.update_layout(title_text="Michaelis-Menten Saturation Curve", 
                            xaxis_title='Media Spend',
                            yaxis_title='Conversions',
                            height=500, width=1000)

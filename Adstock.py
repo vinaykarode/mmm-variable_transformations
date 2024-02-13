@@ -1,102 +1,8 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
-from scipy.stats import weibull_min
-from sklearn.preprocessing import MinMaxScaler
-# ------------------- VARIABLE TRANSFORMATION FUNCTIONS ------------------------
-
-def geometric_adstock_decay(impact, decay_factor, periods):
-    """
-    Calculate the geometric adstock effect.
-
-    Parameters:
-        impact (float): Initial advertising impact.
-        decay_factor (float): Decay factor between 0 and 1.
-        periods (int): Number of periods.
-
-    Returns:
-        list: List of adstock values for each period.
-    """
-    adstock_values = [impact]
-    
-    for _ in range(1, periods):
-        impact *= decay_factor
-        adstock_values.append(impact)
-    
-    return adstock_values
-
-def delayed_geometric_decay(impact, decay_factor, theta, L):
-    """
-    Calculate the geometric adstock effect with a delayed peak and a specified maximum lag length.
-    
-    Parameters:
-        impact (float): Peak advertising impact.
-        decay_factor (float): Decay factor between 0 and 1, applied throughout.
-        theta (int): Period at which peak impact occurs.
-        L (int): Maximum lag length for adstock effect.
-        
-    Returns:
-        np.array: Array of adstock values for each lag up to L.
-    """
-    adstock_values = np.zeros(L)
-    
-    # Calculate adstock values
-    for lag in range(L):
-        if lag < theta:
-            # Before peak, apply decay to grow towards peak
-            adstock_values[lag] = impact * (decay_factor ** abs(lag - theta))
-        else:
-            # After peak, apply decay normally
-            adstock_values[lag] = impact * (decay_factor ** abs(lag - theta))
-    
-    return adstock_values
-
-def weibull_adstock_decay(impact, shape, scale, periods, adstock_type='cdf', normalised=True):
-    """
-    Calculate the Weibull PDF or CDF adstock decay for media mix modeling.
-
-    Parameters:
-        impact (float): Initial advertising impact.
-        shape (float): Shape parameter of the Weibull distribution.
-        scale (float): Scale parameter of the Weibull distribution.
-        periods (int): Number of periods.
-        adstock_type (str): Type of adstock ('cdf' or 'pdf').
-        normalise (bool): If True, normalises decay values between 0 and 1,
-                        otherwise leaves unnormalised.
-
-    Returns:
-        list: List of adstock-decayed values for each period.
-    """
-    # Create an array of time periods
-    x_bin = np.arange(1, periods + 1)
-
-    # Transform the scale parameter according to percentile of time period
-    transformed_scale = round(np.quantile(x_bin, scale))
-
-    # Handle the case when shape or scale is 0
-    if shape == 0 or scale == 0:
-        theta_vec_cum = np.zeros(periods)
-    else:
-        if adstock_type.lower() == 'cdf':
-            # Calculate the Weibull adstock decay using CDF
-            theta_vec = np.concatenate(([1], 1 - weibull_min.cdf(x_bin[:-1], shape, scale=transformed_scale)))
-            theta_vec_cum = np.cumprod(theta_vec)
-        elif adstock_type.lower() == 'pdf':
-            # Calculate the Weibull adstock decay using PDF
-            theta_vec_cum = weibull_min.pdf(x_bin, shape, scale=transformed_scale)
-            theta_vec_cum /= np.sum(theta_vec_cum)
-    
-    # Return adstock decay values, normalized or not
-    if normalised:
-        # Normalize the values between 0 and 1 using Min-Max scaling
-        norm_theta_vec_cum = MinMaxScaler().fit_transform(theta_vec_cum.reshape(-1, 1)).flatten()
-        # Scale by initial impact variable
-        return norm_theta_vec_cum * impact
-    else:
-        # Scale by initial impact variable
-        return theta_vec_cum * impact
-
+# Import custom functions
+from mmm_functions import *
 
 # -------------------------- TOP OF PAGE INFORMATION -------------------------
 
@@ -135,26 +41,32 @@ tab1, tab2, tab3, tab4 = st.tabs(["Geometric", "Delayed Geometric", "Weibull CDF
 
 # -------------------------- GEOMETRIC ADSTOCK DISPLAY -------------------------
 with tab1:
-    st.header('Geometric Adstock Transformation')
-
-    st.markdown("Typical values for geometric adstock: \n \
-- TV: **:blue[0.3 - 0.8]** - decays slowly \n \
-- OOH/Print/Radio:  **:blue[0.1 - 0.4]** - decays moderately \n \
-- Digital:  **:blue[0.0 - 0.3]** - decays quickly \n")
+    st.header(':blue[Geometric Adstock Transformation]')
+    st.divider()
+    st.markdown("___Geometric adstock is the simplest adstock function, it depends on a single parameter $\\beta > 0$ which represents the fixed-rate decay.___ \n \
+                \n __The geometric adstock function takes the following form :__")
+    st.latex(r'''
+        x_t^{\textrm{transf}} = x_t + \beta x_{t-1}^{\textrm{transf}}
+        ''')
+    st.divider()
+    st.markdown("**Typical values for geometric adstock:** \n \
+- TV: **:blue[0.3 - 0.8]** - _decays slowly_ \n \
+- OOH/Print/Radio:  **:blue[0.1 - 0.4]** - _decays moderately_ \n \
+- Digital:  **:blue[0.0 - 0.3]** - _decays quickly_ \n")
 
     # User inputs
-    st.subheader('User Inputs')
+    st.subheader(':blue[User Inputs]')
     num_periods = st.slider('Number of weeks after impressions first received :alarm_clock:', 1, 100, 20, key = "Geometric")
     # Let user choose decay rates to plot with
-    decay_rate_1 = st.slider(':blue[Beta 1] :large_blue_square:', 0.0, 1.0, 0.3)
+    decay_rate_1 = st.slider(':blue[Beta 1 : ]', 0.0, 1.0, 0.3)
     # Add up to 2 more lines if the user wants it
     st.markdown('**Would you like to show multiple (3) decay lines on the plot**')
     multi_plot = st.checkbox('Okay! :grin:')
     # Create a list of decay rates
     if multi_plot:
         # Let user choose additional decay rates to plot with
-        decay_rate_2 = st.slider(':red[Beta 2] :large_red_square:', 0.0, 1.0, 0.6)
-        decay_rate_3 = st.slider(':green[Beta 3] :large_green_square:', 0.0, 1.0, 0.9)
+        decay_rate_2 = st.slider(':red[Beta 2 : ]', 0.0, 1.0, 0.6)
+        decay_rate_3 = st.slider(':green[Beta 3: ]', 0.0, 1.0, 0.9)
         decay_rates = [decay_rate_1, decay_rate_2, decay_rate_3]
     else:
         decay_rates = [decay_rate_1]
@@ -204,19 +116,30 @@ with tab1:
 
 # -------------------------- DELAYED GEOMETRIC ADSTOCK DISPLAY -------------------------
 with tab2:
-    st.header('Delayed Geometric Adstock Transformation')
-
-    st.markdown("Typical values for geometric adstock: \n \
-- TV: **:blue[0.3 - 0.8]** - decays slowly \n \
-- OOH/Print/Radio:  **:blue[0.1 - 0.4]** - decays moderately \n \
-- Digital:  **:blue[0.0 - 0.3]** - decays quickly \n")
+    st.header(':red[Delayed Geometric Adstock Transformation]')
+    st.divider()
+    st.markdown("___Delayed geometric adstock builds on geometric adstock___ \
+                 ___by adding in a delay $\\theta$ before the maximum adstock is observed (this happens at week 0 for the plain geometric decay).___ \
+                \n ___It also adds a maximum duration for the carryover/adstock  $L_{max}$,  such that adstock after this point is 0.___ \n \
+                \n __The delayed geometric adstock function takes the following form :__")
+    st.latex(r'''
+        x_t^{\textrm{transf}} = \sum_{i=0}^{L_{\max}-1} \left( \beta^{|i-\theta|} \cdot x_{t-i} \right) \\''')
+    st.markdown("- $x_t^{\\textrm{transf}}$ refers to the transformed value at time $t$ after applying the delayed adstock transformation")
+    st.markdown("- $\\beta$ is the retention rate of the ad effect")
+    st.markdown("- $\\theta$ represents the delay before the peak effect occurs")
+    st.markdown("- $L_{max}$ is the maximum duration of the carryover effect")
+    st.divider()
+    st.markdown("**Typical values for geometric adstock:** \n \
+- TV: **:blue[0.3 - 0.8]** - _decays slowly_ \n \
+- OOH/Print/Radio:  **:blue[0.1 - 0.4]** - _decays moderately_ \n \
+- Digital:  **:blue[0.0 - 0.3]** - _decays quickly_ \n")
 
     # User inputs
-    st.subheader('User Inputs')
-    max_lag = st.slider(':blue[Number of weeks after impressions first received :alarm_clock:]', 1, 100, 30, key = "Delayed Geometric")
-    max_peak = st.slider(':blue[Number of weeks after impressions first received that max impact occurs :thermometer:]', 1, 100, 10, key = "delayed_geom_L")
+    st.subheader(':red[User Inputs]')
+    max_lag = st.slider('Number of weeks after impressions first received :alarm_clock: : ', 1, 100, 30, key = "Delayed Geometric")
+    max_peak = st.slider(':red[Number of weeks after impressions first received that max impact occurs :thermometer: : ]', 1, 100, 10, key = "delayed_geom_L")
     # Let user choose decay rates to plot with
-    decay_rate_1 = st.slider(':blue[Beta 1] :large_blue_square:', 0.0, 1.0, 0.5, key="delay_decay")
+    decay_rate_1 = st.slider(':red[Beta 1: ]', 0.0, 1.0, 0.5, key="delay_decay")
 
     # Add up to 2 more lines if the user wants it
     st.markdown('**Would you like to show multiple (3) decay lines on the plot**')
@@ -224,12 +147,12 @@ with tab2:
     # Create a list of decay rates
     if multi_plot:
         # Let user choose additional decay rates, lags and peaks to plot with
-        decay_rate_2 = st.slider(':red[Beta 2] :large_red_square:', 0.0, 1.0, 0.6, key="delay_decay2")
-        max_peak_2 = st.slider(':red[Number of weeks after impressions first received that max impact occurs :thermometer:]', 1, 100, 5, key = "delayed_geom_L 2")
-        max_lag_2 = st.slider(':red[Number of weeks after impressions first received :alarm_clock:]', 1, 100, 20, key = "Delayed Geometric 2 ")
-        decay_rate_3 = st.slider(':green[Beta 3] :large_green_square:', 0.0, 1.0, 0.9, key="delay_decay3")
-        max_lag_3 = st.slider(':green[Number of weeks after impressions first received :alarm_clock:]', 1, 100, 20, key = "Delayed Geometric 3 ")
-        max_peak_3 = st.slider(':green[Number of weeks after impressions first received that max impact occurs :thermometer:]', 1, 100, 5, key = "delayed_geom_L 3")
+        decay_rate_2 = st.slider(':blue[Beta 2: ]', 0.0, 1.0, 0.6, key="delay_decay2")
+        max_peak_2 = st.slider(':blue[Number of weeks after impressions first received that max impact occurs :thermometer: :]', 1, 100, 5, key = "delayed_geom_L 2")
+        max_lag_2 = st.slider(':blue[Number of weeks after impressions first received :alarm_clock: : ]', 1, 100, 20, key = "Delayed Geometric 2 ")
+        decay_rate_3 = st.slider(':green[Beta 3: ]', 0.0, 1.0, 0.9, key="delay_decay3")
+        max_lag_3 = st.slider(':green[Number of weeks after impressions first received :alarm_clock: : ]', 1, 100, 20, key = "Delayed Geometric 3 ")
+        max_peak_3 = st.slider(':green[Number of weeks after impressions first received that max impact occurs :thermometer: :]', 1, 100, 5, key = "delayed_geom_L 3")
 
         # Put in lists to iterate through later
         decay_rates = [decay_rate_1, decay_rate_2, decay_rate_3]
@@ -289,16 +212,31 @@ with tab2:
 
 # -------------------------- WEIBULL CDF ADSTOCK DISPLAY -------------------------
 with tab3:
-    st.header('Weibull CDF Adstock Transformation')
+    st.header(':green[Weibull CDF Adstock Transformation]')
+    st.divider()
+    st.markdown("___The Weibull CDF is a function depending on two variables, $k$ (known as the **shape**) and $\lambda$ (known as the **scale**)___.  \n  \
+                The idea is closely related to geometric adstock but with one important difference : the rate of decay (what we called $\\beta$ in the geometric adstock equation)  \
+                 is no longer fixed. Instead it’s **time-dependent**. \
+                \n \n **The Weibull CDF adstock function therefore takes the form :**")
+    st.latex(r'''
+        x_t^{\textrm{transf}} = x_t + \beta_t x_{t-1}^{\textrm{transf}}''')
+    st.markdown('- where $\\beta_t$ is now a function of time $t$')
+    st.markdown('**The Weibull CDF is actually used to build the $\\beta_t$’s, and it takes the form :**')
+    st.latex(r'''
+             F_{k, \lambda}(t) = 1 - e^{-(\frac{t}{\lambda})^k}''')
+    st.markdown('Then, $\\beta_t$ is computed as : ')
+    st.latex(r'''
+        \beta_t = 1 - F_{k,\lambda}(t)''')
+    st.divider()
     # User inputs
-    st.subheader('User Inputs')
-    num_periods_2 = st.slider('Number of weeks after impressions first received :alarm_clock:',
+    st.subheader(':green[User Inputs]')
+    num_periods_2 = st.slider('Number of weeks after impressions first received :alarm_clock: :',
                                1, 100, 20, key = "Weibull CDF Periods")
     # Let user choose shape and scale parameters to compare two Weibull PDF decay curves simultaneously
     # Params for Line A
-    shape_parameter_A = st.slider(':triangular_ruler: :blue[Shape of Line A] :large_blue_square:', 
+    shape_parameter_A = st.slider(':triangular_ruler: :green[Shape $k$ of Line A]:', 
                                   0.0, 10.0, 0.1, key = "Weibull CDF Shape A")
-    scale_parameter_A = st.slider(':blue[Scale of Line A] :large_blue_square:',
+    scale_parameter_A = st.slider(':green[Scale $\lambda$ of Line A]:',
                                    0.0, 1.0, 0.1, key = "Weibull CDF Scale A")
     
     # Calculate weibull pdf adstock values, decayed over time for both sets of params
@@ -320,9 +258,9 @@ with tab3:
 
     if second_cdf:
         # Params for Line B
-        shape_parameter_B = st.slider(':triangular_ruler: :red[Shape of Line B] :large_red_square:', 
+        shape_parameter_B = st.slider(':triangular_ruler: :red[Shape $k$ of Line B : ]', 
                                     0.0, 10.0, 9.0, key = "Weibull CDF Shape B")
-        scale_parameter_B = st.slider(':red[Scale of Line B] :large_red_square:', 
+        scale_parameter_B = st.slider(':red[Scale $\lambda$ of Line B : ]', 
                                     0.0, 1.0, 0.5, key = "Weibull CDF Scale B")
         # Calculate weibull pdf adstock values, decayed over time for both sets of params
         adstock_series_B = weibull_adstock_decay(initial_impact, shape_parameter_B,
@@ -369,17 +307,30 @@ with tab3:
 
 # -------------------------- WEIBULL PDF ADSTOCK DISPLAY -------------------------
 with tab4:
-    st.header('Weibull PDF Adstock Transformation')
+    st.header(':violet[Weibull PDF Adstock Transformation]')
+    st.divider()
+    st.markdown("___The Weibull PDF is also a function depending on two variables, $k$ (shape) and $\lambda$ (scale) \
+                 and the same remarks for Weibull CDF apply to Weibull PDF.___ \
+                \n The key difference is that Weibull PDF \
+                 allows for lagged effects to be taken into account - the **time delay effect**. \
+                \n \n **The Weibull PDF adstock function therefore takes the form :**")
+    st.latex(r'''
+        x_t^{\textrm{transf}} = x_t + \beta_t x_{t-1}^{\textrm{transf}}''')
+    st.markdown('- where $\\beta_t$ is now a function of time $t$')
+    st.markdown('**The Weibull PDF is actually used to build the $\\beta_t$’s, and it takes the form :**')
+    st.latex(r'''
+             G_{k,\lambda}(t) = \frac{k}{\lambda}\Big(\frac{t}{\lambda} \Big)^{k-1}e^{-(\frac{t}{\lambda})^k}''')
+    st.divider()
 
     # User inputs
-    st.subheader('User Inputs')
-    num_periods_3 = st.slider('Number of weeks after impressions first received :alarm_clock:',
+    st.subheader(':violet[User Inputs]')
+    num_periods_3 = st.slider('Number of weeks after impressions first received :alarm_clock: : ',
                                1, 100, 20, key = "Weibull PDF Periods")
     # Let user choose shape and scale parameters to compare two Weibull PDF decay curves simultaneously
     # Params for Line A
-    shape_parameter_A = st.slider(':triangular_ruler: :blue[Shape of Line A] :large_blue_square:',
+    shape_parameter_A = st.slider(':triangular_ruler: :blue[Shape $k$ of Line A : ]',
                                    0.0, 10.0, 2.0, key = "Weibull PDF Shape A")
-    scale_parameter_A = st.slider(':blue[Scale of Line A] :large_blue_square:', 
+    scale_parameter_A = st.slider(':blue[Scale $\lambda$ of Line A : ]', 
                                   0.0, 1.0, 0.5, key = "Weibull PDF Scale A")
     
     # Calculate weibull pdf adstock values, decayed over time for both sets of params
@@ -401,9 +352,9 @@ with tab4:
 
     if second_pdf:
         # Params for Line B
-        shape_parameter_B = st.slider(':triangular_ruler: :red[Shape of Line B] :large_red_square:',
+        shape_parameter_B = st.slider(':triangular_ruler: :red[Shape $k$ of Line B : ]',
                                     0.0, 10.0, 0.5, key = "Weibull PDF Shape B")
-        scale_parameter_B = st.slider(':red[Scale of Line B] :large_red_square:', 
+        scale_parameter_B = st.slider(':red[Scale $\lambda$ of Line B : ]', 
                                     0.0, 1.0, 0.01, key = "Weibull PDF Scale B")
 
         # Calculate weibull pdf adstock values, decayed over time for both sets of params
