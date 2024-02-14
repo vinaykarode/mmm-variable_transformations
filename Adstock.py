@@ -53,6 +53,7 @@ with tab1:
 - TV: **:blue[0.3 - 0.8]** - _decays slowly_ \n \
 - OOH/Print/Radio:  **:blue[0.1 - 0.4]** - _decays moderately_ \n \
 - Digital:  **:blue[0.0 - 0.3]** - _decays quickly_ \n")
+    st.caption(":link: [Values taken from Meta's Analyst's Guide to MMM](https://facebookexperimental.github.io/Robyn/docs/analysts-guide-to-MMM/#feature-engineering)")
 
     # User inputs
     st.subheader(':blue[User Inputs]')
@@ -133,6 +134,7 @@ with tab2:
 - TV: **:blue[0.3 - 0.8]** - _decays slowly_ \n \
 - OOH/Print/Radio:  **:blue[0.1 - 0.4]** - _decays moderately_ \n \
 - Digital:  **:blue[0.0 - 0.3]** - _decays quickly_ \n")
+    st.caption(":link: [Values taken from Meta's Analyst's Guide to MMM](https://facebookexperimental.github.io/Robyn/docs/analysts-guide-to-MMM/#feature-engineering)")
 
     # User inputs
     st.subheader(':red[User Inputs]')
