@@ -139,7 +139,7 @@ with tab2:
     # User inputs
     st.subheader(':red[User Inputs]')
     max_lag = st.slider('Number of weeks after impressions first received :alarm_clock: : ', 1, 100, 30, key = "Delayed Geometric")
-    max_peak = st.slider(':red[Number of weeks after impressions first received that max impact occurs :thermometer: : ]', 1, 100, 10, key = "delayed_geom_L")
+    max_peak = st.slider(':red[Number of weeks after impressions first received that max impact occurs :thermometer: : ]', 0, 100, 10, key = "delayed_geom_L")
     # Let user choose decay rates to plot with
     decay_rate_1 = st.slider(':red[Beta 1: ]', 0.0, 1.0, 0.5, key="delay_decay")
 
