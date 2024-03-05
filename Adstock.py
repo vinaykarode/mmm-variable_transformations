@@ -208,7 +208,7 @@ with tab2:
     # Format plot
     fig.layout.height = 600
     fig.layout.width = 1000
-    fig.update_layout(title_text="Geometric Adstock Decayed Over Weeks", 
+    fig.update_layout(title_text="Delayed Geometric Adstock Decayed Over Weeks", 
                     title_font = dict(size = 30))
     st.plotly_chart(fig, theme="streamlit", use_container_width=False)
 
